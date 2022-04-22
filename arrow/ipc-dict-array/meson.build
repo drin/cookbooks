@@ -1,18 +1,52 @@
+# ------------------------------
+# Project definition
+
 project(
-  'ipc-dict-array', 'cpp',
+  'dictarray-recipe', 'cpp',
   version         : '0.1',
   default_options : [ 'warning_level=3', 'cpp_std=c++17' ]
 )
 
+
+# ------------------------------
 # Dependencies
+
 dep_arrow = dependency('arrow-dataset', version: '>=7.0.0', static: false)
 
-# arbitrary name for the executable we'll build
-main_exe = executable('ipc_dict_array'
-  ,'ipc_dict_array.cpp'
+
+# ------------------------------
+# Binaries to create
+
+# recipe just shows basic usage
+exe_recipe = executable('dictarray-recipe'
+  ,'main.cpp'
+  ,'storage.cpp'
+  ,'recipe.cpp'
   ,dependencies : dep_arrow
   ,install      : false
 )
 
-# I don't think we need "test"
+# writer allows us to profile the use of a DictionaryArray in a Table
+exe_writer = executable('write-test'
+  ,'writer.cpp'
+  ,'storage.cpp'
+  ,'recipe.cpp'
+  ,dependencies : dep_arrow
+  ,install      : false
+)
+
+# reader allows us to profile the use of a DictionaryArray in a Table
+exe_reader = executable('read-test'
+  ,'reader.cpp'
+  ,'storage.cpp'
+  ,'recipe.cpp'
+  ,dependencies : dep_arrow
+  ,install      : false
+)
+
+
+# ------------------------------
+# Test targets
+
+# Default test target, but I don't think we need these
 # test('basic', exe)
