@@ -35,10 +35,11 @@ using arrow::DictionaryArray;
 
 using arrow::ChunkedArray;
 using arrow::Table;
+using arrow::RecordBatch;
 using arrow::Schema;
 
 using arrow::ipc::RecordBatchWriter;
-using arrow::ipc::RecordBatchStreamReader;
+using arrow::ipc::RecordBatchFileReader;
 
 // complex options for IPC readers and writers
 using arrow::ipc::IpcReadOptions;
@@ -46,6 +47,9 @@ using arrow::ipc::IpcWriteOptions;
 
 // arrow compute functions
 using arrow::compute::DictionaryEncode;
+
+// arrow reader/writer functions
+using arrow::ipc::MakeFileWriter;
 
 
 // ------------------------------
@@ -68,5 +72,5 @@ string ConstructFileUri(char *file_dirpath);
 Result<shared_ptr<RecordBatchWriter>>
 WriterForIPCFile(shared_ptr<Schema> schema, const string &path_as_uri);
 
-Result<shared_ptr<RecordBatchStreamReader>>
+Result<shared_ptr<RecordBatchFileReader>>
 ReaderForIPCFile(const std::string &path_as_uri);
