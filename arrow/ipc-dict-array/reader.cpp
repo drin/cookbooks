@@ -16,11 +16,23 @@ ReadTableFromFile(string &filepath_uri) {
     // construct a reader object
     ARROW_ASSIGN_OR_RAISE(auto file_reader, ReaderForIPCFile(filepath_uri));
 
-    // tell the reader to read all batches into a table
-    auto test_table = shared_ptr<Table>(nullptr);
-    ARROW_RETURN_NOT_OK(file_reader->ReadAll(&test_table));
+    vector<shared_ptr<RecordBatch>> parsed_batches;
+    parsed_batches.reserve(file_reader->num_record_batches());
 
-    return test_table;
+    for (int batch_ndx = 0; batch_ndx < file_reader->num_record_batches(); ++batch_ndx) {
+        auto read_result = file_reader->ReadRecordBatch(batch_ndx);
+        if (not read_result.ok()) {
+            std::cerr << "Failed to read record batch [" << batch_ndx << "]" << std::endl
+                      << "\t" << read_result.status().message()              << std::endl
+            ;
+
+            return Status::Invalid("Unable to read table from IPC file");
+        }
+
+        parsed_batches.push_back(*read_result);
+    }
+
+    return Table::FromRecordBatches(std::move(parsed_batches));
 }
 
 
