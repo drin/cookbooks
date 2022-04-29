@@ -29,36 +29,35 @@ ConstructFileUri(char *file_dirpath) {
 }
 
 
-Result<shared_ptr<RecordBatchStreamReader>>
+Result<shared_ptr<RecordBatchFileReader>>
 ReaderForIPCFile(const std::string &path_as_uri) {
-    // For debug
-    std::cout << "Reading arrow IPC-formatted file: " << path_as_uri << std::endl;
     std::string path_to_file;
 
     // get a `FileSystem` instance (local fs scheme is "file://")
     ARROW_ASSIGN_OR_RAISE(auto localfs, FileSystemFromUri(path_as_uri, &path_to_file));
 
     // use the `FileSystem` instance to open a handle to the file
+    std::cout << "Reading '" << path_to_file << "'" << std::endl;           // For debug
     ARROW_ASSIGN_OR_RAISE(auto input_file_stream, localfs->OpenInputFile(path_to_file));
 
-    // read from the handle using `RecordBatchStreamReader`
-    return RecordBatchStreamReader::Open(input_file_stream, IpcReadOptions::Defaults());
+    // read from the handle using `RecordBatchFileReader`
+    return RecordBatchFileReader::Open(input_file_stream, IpcReadOptions::Defaults());
 }
 
 
 Result<shared_ptr<RecordBatchWriter>>
 WriterForIPCFile(shared_ptr<Schema> schema, const std::string &path_as_uri) {
-    std::cout << "Writing arrow IPC-formatted file: " << path_as_uri << std::endl;
     std::string path_to_file;
 
     // get a `FileSystem` instance (local fs scheme is "file://")
     ARROW_ASSIGN_OR_RAISE(auto localfs, FileSystemFromUri(path_as_uri, &path_to_file));
 
     // create a handle for the file (expecting a RandomAccessFile type)
+    std::cout << "Writing '" << path_to_file << "'" << std::endl;               // For debug
     ARROW_ASSIGN_OR_RAISE(auto output_file_stream, localfs->OpenOutputStream(path_to_file));
 
-    // read from the handle using `RecordBatchStreamReader`
-    return arrow::ipc::MakeFileWriter(output_file_stream, schema, IpcWriteOptions::Defaults());
+    // write to the handle using `RecordBatchWriter`
+    return MakeFileWriter(output_file_stream, schema, IpcWriteOptions::Defaults());
 }
 
 
