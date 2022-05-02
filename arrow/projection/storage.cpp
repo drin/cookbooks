@@ -10,6 +10,13 @@
 
 using arrow::fs::FileSystemFromUri;
 
+
+// ------------------------------
+// Global Variables
+
+static int MAX_BATCHES = 256;
+
+
 // ------------------------------
 // Functions
 
@@ -49,11 +56,20 @@ Result<shared_ptr<InMemoryDataset>>
 DatasetFromFile(string &filepath_uri) {
     // construct a reader object
     ARROW_ASSIGN_OR_RAISE(auto file_reader, ReaderForIPCFile(filepath_uri));
+    int batches_to_read = file_reader->num_record_batches() > MAX_BATCHES ?
+          MAX_BATCHES
+        : file_reader->num_record_batches()
+    ;
+    std::cout << "Reading "
+              << batches_to_read << " of " << file_reader->num_record_batches()
+              << " batches..."
+              << std::endl
+    ;
 
     vector<shared_ptr<RecordBatch>> parsed_batches;
-    parsed_batches.reserve(file_reader->num_record_batches());
+    parsed_batches.reserve(batches_to_read);
 
-    for (int batch_ndx = 0; batch_ndx < file_reader->num_record_batches(); ++batch_ndx) {
+    for (int batch_ndx = 0; batch_ndx < batches_to_read; ++batch_ndx) {
         auto read_result = file_reader->ReadRecordBatch(batch_ndx);
         if (not read_result.ok()) {
             std::cerr << "Failed to read record batch [" << batch_ndx << "]" << std::endl
