@@ -3,6 +3,7 @@
 
 // Local and third-party dependencies
 #include "recipe.hpp"
+#include "timing.hpp"
 
 // ------------------------------
 // Macros and aliases
@@ -77,6 +78,8 @@ int main(int argc, char **argv) {
     };
     */
 
+    auto tstart = std::chrono::steady_clock::now();
+
     Expression filter_expr_sel10 = greater(field_ref(FieldRef("SRR3052220")), literal(10));
     Expression filter_expr_sel25 = or_({
          greater(field_ref(FieldRef("SRR3052220")), literal(10))
@@ -93,6 +96,8 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    auto tstop = std::chrono::steady_clock::now();
+
     /*
     auto filtered_col = (*table_result)->GetColumnByName("SRR3052220");
     std::cout << "Filtered column: "      << filtered_col->length();
@@ -101,8 +106,11 @@ int main(int argc, char **argv) {
 
     // std::cout << (*table_result)->ToString() << std::endl;
     // PrintTable(*table_result, 0, 20);
-    std::cout << "Result columns: " << (*table_result)->num_columns() << std::endl;
-    std::cout << "Result rows   : " << (*table_result)->num_rows()    << std::endl;
+    std::cout << "Result columns : " << (*table_result)->num_columns() << std::endl;
+    std::cout << "Result rows    : " << (*table_result)->num_rows()    << std::endl;
+    std::cout << "Start Time (ms): " << TickToMS(tstart)               << std::endl;
+    std::cout << "Stop  Time (ms): " << TickToMS(tstop)                << std::endl;
+    std::cout << "Duration   (ms): " << CountTicks(tstart, tstop)      << std::endl;
 
     return 0;
 }

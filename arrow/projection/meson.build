@@ -31,6 +31,7 @@ exe_recipe = executable('projection-from-dataset'
   ,'project_from_dataset.cpp'
   ,'recipe.cpp'
   ,'storage.cpp'
+  ,'timing.cpp'
   ,dependencies : dep_arrow
   ,install      : false
 )
