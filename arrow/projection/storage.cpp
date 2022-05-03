@@ -15,6 +15,7 @@ using arrow::fs::FileSystemFromUri;
 // Global Variables
 
 static int MAX_BATCHES = 256;
+// static int MAX_BATCHES = 1024;
 
 
 // ------------------------------
