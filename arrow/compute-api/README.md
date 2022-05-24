@@ -20,7 +20,7 @@ I compile the code using the following commands:
 Meson uses ninja for compilation, so some options (such as `-C`) seem to forward to ninja.
 
 Here's what my session looks like, using `...` to make it more concise:
-```
+```bash
 >> meson build
 The Meson build system
 Version: 0.62.0
