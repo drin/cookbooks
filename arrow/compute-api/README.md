@@ -39,7 +39,7 @@ ninja: Entering directory `/.../cookbooks/arrow/compute-api/build'
 # Execution
 
 This line in `meson.build` defines the binary that will be created:
-```
+```python
 exe_recipe = executable('index-recipe'
     ...
 )
