@@ -7,22 +7,39 @@
 // ------------------------------
 // Macros and aliases
 
+/*
+constexpr uint32_t MAX_BATCHSIZE = MiniBatch::kMiniBatchLength;
+constexpr uint32_t UNIT_SIZE     = 128;
+*/
 
 // ------------------------------
 // Functions
 
+
 /**
- * A recipe for calling `Index`. See:
- * https://github.com/apache/arrow/blob/apache-arrow-8.0.0/cpp/src/arrow/compute/kernels/aggregate_test.cc#L2234
+ * A recipe for calling `Hashing32::HashBatch`.
+ *
+ * This shows how to call HashBatch, which requires access to an `ExecContext` and also a
+ * `TempVectorStack`. The TempVectorStack must be initialized before HashBatch can
+ * allocate memory through it; additionally, the initialized size must be large enough to
+ * accommodate memory allocated from it.
  */
 Status
-HashBatchColumns(shared_ptr<RecordBatch> source_batch, vector<int> &col_indices) {
+HashBatchColumns( shared_ptr<RecordBatch>  source_batch
+                 ,vector<int>             &col_indices
+                 ,int64_t                  expected_size) {
     ARROW_ASSIGN_OR_RAISE(auto process_batch, source_batch->SelectColumns(col_indices));
 
     auto             exec_ctx    = default_exec_context();
     auto             input_batch = ExecBatch(*process_batch);
     vector<uint32_t> result_hashes(input_batch.length);
+
     TempVectorStack  tmp_stack;
+    auto init_status = tmp_stack.Init(
+         exec_ctx->memory_pool()
+        ,expected_size * process_batch->num_columns()
+    );
+    ARROW_WARN_NOT_OK(init_status, "Initialized TempVectorStack");
 
     auto hash_status = Hashing32::HashBatch(
          input_batch
@@ -58,8 +75,8 @@ ConstructStrArray(vector<string> src_vector) {
     shared_ptr<StringArray> str_array;
     arrow::StringBuilder    arr_builder;
 
-    arr_builder.Resize(src_vector.size());
-    arr_builder.AppendValues(src_vector);
+    ARROW_WARN_NOT_OK(arr_builder.Resize(src_vector.size()), "Resize");
+    ARROW_WARN_NOT_OK(arr_builder.AppendValues(src_vector) , "Append");
 
     arrow::Status build_status = arr_builder.Finish(&str_array);
     if (not build_status.ok()) {

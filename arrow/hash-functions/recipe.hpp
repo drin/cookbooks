@@ -31,13 +31,18 @@ using arrow::Datum;
 
 // arrow data types
 using arrow::util::TempVectorStack;
+using arrow::util::MiniBatch;
 
 // scalar types; these seem new as of 8.0.0
 using arrow::Scalar;
 using arrow::Int64Scalar;
 
 // typical array types
+using arrow::TypeTraits;
+using arrow::StringType;
 using arrow::Array;
+using arrow::BaseBinaryArray;
+using arrow::PrimitiveArray;
 using arrow::ArrayVector;
 using arrow::StringArray;
 using arrow::ChunkedArray;
@@ -64,9 +69,30 @@ using arrow::compute::default_exec_context;
 // ------------------------------
 // Functions
 
+// template functions
+
+template<typename DataType, typename ArrayType>
+arrow::enable_if_base_binary<DataType, int64_t>
+CalculateTempStackSize(shared_ptr<ArrayType> sample_col) {
+  auto arr_slice = std::static_pointer_cast<ArrayType>(
+    sample_col->Slice(0, MiniBatch::kMiniBatchLength)
+  );
+
+  return 64 * arr_slice->total_values_length();
+}
+
+template<typename DataType, typename ArrayType>
+arrow::enable_if_primitive_ctype<DataType, int64_t>
+CalculateTempStackSize(shared_ptr<ArrayType> sample_col) {
+  return 64 * std::min(sample_col->length(), MiniBatch::kMiniBatchLength);
+}
+
+
 // recipe functions
 Status
-HashBatchColumns(shared_ptr<RecordBatch> source_batch, vector<int> &col_indices);
+HashBatchColumns( shared_ptr<RecordBatch>  source_batch
+                 ,vector<int>             &col_indices
+                 ,int64_t                  expected_size);
 
 // convenience functions
 
