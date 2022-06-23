@@ -16,7 +16,17 @@ ConstructTestBatch(int64_t row_count, int col_count) {
     ArrayVector batch_data;
     batch_data.reserve(col_count);
 
-    // >> First, construct the batch data itself
+    // >> First, define the schema
+    // auto str_chunkedarr = std::make_shared<ChunkedArray>(str_arrvec, arrow::utf8());
+    vector<shared_ptr<Field>> schema_fields;
+    schema_fields.reserve(col_count);
+
+    for (int col_ndx = 0; col_ndx < col_count; ++col_ndx) {
+        string field_name { "col" + std::to_string(col_ndx) };
+        schema_fields.push_back(arrow::field(field_name, arrow::uint32()));
+    }
+
+    // >> Second, construct the batch data itself
     // For each column from 0 to `col_count`
     for (int col_ndx = 0; col_ndx < col_count; ++col_ndx) {
         string val_prefix { "col" + std::to_string(col_ndx) };
@@ -36,16 +46,6 @@ ConstructTestBatch(int64_t row_count, int col_count) {
         batch_data.push_back(*str_arr_result);
     }
 
-    // >> Second, define the schema
-    // auto str_chunkedarr = std::make_shared<ChunkedArray>(str_arrvec, arrow::utf8());
-    vector<shared_ptr<Field>> schema_fields;
-    schema_fields.reserve(col_count);
-
-    for (int col_ndx = 0; col_ndx < col_count; ++col_ndx) {
-        string field_name { "col" + std::to_string(col_ndx) };
-        schema_fields.push_back(arrow::field(field_name, arrow::uint32()));
-    }
-
     auto batch_schema = arrow::schema(schema_fields);
     return RecordBatch::Make(batch_schema, row_count, batch_data);
 }
@@ -58,9 +58,18 @@ int main(int argc, char **argv) {
     // Make some test data
     shared_ptr<RecordBatch> input_batch = ConstructTestBatch(5, 5);
 
-    // Call a convenience wrapper around `arrow::compute::Index`
     vector<int> col_indices = { 1, 3 };
-    auto        hash_status = HashBatchColumns(input_batch, col_indices);
+    auto        col_bufsize = CalculateTempStackSize<StringType, StringArray>(
+        std::static_pointer_cast<StringArray>(input_batch->column(0))
+    );
+
+    // Call a convenience wrapper around `arrow::compute::exec::Hashing32::HashBatch`
+    auto hash_status = HashBatchColumns(
+         input_batch
+        ,col_indices
+        ,col_bufsize * col_indices.size()
+    );
+
     if (not hash_status.ok()) {
         std::cerr << "Error when hashing the data:" << std::endl
                   << "\t" << hash_status.message()  << std::endl
