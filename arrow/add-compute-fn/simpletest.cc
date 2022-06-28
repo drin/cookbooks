@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
   // >> Construct some test data
   auto build_result = BuildIntArray();
   if (not build_result.ok()) {
-    std::cout << build_result.status().message() << std::endl;
+    std::cerr << build_result.status().message() << std::endl;
     return 1;
   }
 
@@ -32,10 +32,12 @@ int main(int argc, char **argv) {
   Datum col_as_datum { col_vals };
   auto fn_result = NamedScalarFn(col_as_datum);
   if (not fn_result.ok()) {
-    std::cout << fn_result.status().message() << std::endl;
+    std::cerr << fn_result.status().message() << std::endl;
     return 2;
   }
 
-  std::cout << fn_result->ToString() << std::endl;
+  auto result_data = fn_result->make_array();
+  std::cout << "Success:"                      << std::endl;
+  std::cout << "\t" << result_data->ToString() << std::endl;
   return 0;
 }
