@@ -82,8 +82,7 @@ struct NamedScalarFn {
     ARROW_ASSIGN_OR_RAISE(auto result_array, builder.Finish());
 
     ARROW_LOG(INFO) << "Setting kernel outputs";
-    shared_ptr<ArrayData> out_arrdata = out->array_data();
-    out_arrdata                       = result_array->data();
+    out->value = result_array->data();
 
     ARROW_LOG(INFO) << "Kernel execution complete";
     return Status::OK();
