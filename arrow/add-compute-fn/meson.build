@@ -11,26 +11,18 @@ project(
 # ------------------------------
 # Dependencies
 
-dep_arrow = dependency('arrow-dataset', version: '>=9.0.0', static: false)
+dep_arrow = dependency('arrow-dataset', version: '>=8.0.0', static: false)
 
 
 # ------------------------------
 # Binaries to create
 
 simple_recipe = executable('simple'
-  ,'simpletest.cc'
+  ,'simple-main.cc'
   ,'recipe.cc'
   ,dependencies : dep_arrow
   ,install      : false
 )
-
-# recipe just shows basic usage
-# exe_recipe = executable('computefn-recipe'
-#   ,'computefn.cc'
-#   ,'recipe.cc'
-#   ,dependencies : dep_arrow
-#   ,install      : false
-# )
 
 
 # ------------------------------

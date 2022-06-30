@@ -2,7 +2,7 @@
 
 Result<shared_ptr<Array>>
 BuildIntArray() {
-  vector<int32_t> col_vals { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  vector<int32_t> col_vals { 0, 1, 1, 2, 3, 5, 8, 13, 21, 34 };
 
   Int32Builder builder;
   ARROW_RETURN_NOT_OK(builder.Reserve(col_vals.size()));
