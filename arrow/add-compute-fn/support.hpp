@@ -13,77 +13,78 @@
 #include <arrow/api.h>
 #include <arrow/compute/api.h>
 #include <arrow/compute/exec/key_hash.h>
-#include <arrow/compute/exec/util.h>
-#include <arrow/compute/exec/options.h>
 
 
 // ------------------------------
 // Aliases
 
-// for templates and metaprogramming
-using arrow::enable_if_primitive_ctype;
+// ----------
+// Aliases for classes and structs
 
-// aliases for standard types
-using std::string;
+// >> aliases for types in standard library
 using std::shared_ptr;
 using std::vector;
+using std::string;
+
 
 // arrow util types
 using arrow::Result;
 using arrow::Status;
 using arrow::Datum;
 
-// arrow data types
-using arrow::util::TempVectorStack;
-using arrow::util::MiniBatch;
+// arrow data types and helpers
+using arrow::Array;
+using arrow::ArraySpan;
 
-// scalar types; these seem new as of 8.0.0
-using arrow::Scalar;
-using arrow::Int64Scalar;
+using arrow::UInt32Array;
+using arrow::UInt32Builder;
+
+using arrow::Int32Array;
 using arrow::Int32Builder;
 
-// typical array types
-using arrow::TypeTraits;
-using arrow::StringType;
-using arrow::Array;
-using arrow::ArrayData;
-using arrow::Int32Array;
-using arrow::BaseBinaryArray;
-using arrow::PrimitiveArray;
-using arrow::ArrayVector;
 using arrow::StringArray;
-using arrow::ChunkedArray;
+using arrow::StringBuilder;
 
-// relational types
-using arrow::Schema;
-using arrow::Field;
-using arrow::Table;
-using arrow::RecordBatch;
-
-// compute types
-using arrow::compute::ExecContext;
+// aliases for types used in `NamedScalarFn`
+//    |> kernel parameters
 using arrow::compute::KernelContext;
-using arrow::compute::ExecBatch;
 using arrow::compute::ExecSpan;
 using arrow::compute::ExecResult;
-using arrow::compute::Hashing32;
 
-// arrow functions
-using arrow::MakeScalar;
+//    |> common types for compute functions
 using arrow::compute::FunctionRegistry;
-using arrow::compute::ScalarFunction;
 using arrow::compute::FunctionDoc;
 using arrow::compute::InputType;
 using arrow::compute::OutputType;
 using arrow::compute::Arity;
 
-// >> compute functions
-using arrow::compute::Index;
-using arrow::compute::IndexOptions;
+//    |> the "kind" of function we want
+using arrow::compute::ScalarFunction;
+
+//    |> other context types
+using arrow::compute::ExecContext;
+using arrow::compute::LightContext;
+
+//    |> for hashing
+using arrow::util::MiniBatch;
+using arrow::util::TempVectorStack;
+
+using arrow::compute::KeyColumnArray;
+using arrow::compute::Hashing32;
+
+
+// ----------
+// Aliases for functions
+
+// >> functions used for setup
 using arrow::compute::default_exec_context;
 
+// >> functions used in kernel for `NamedScalarFn`
+using arrow::compute::ColumnArrayFromArrayData;
 
-// convenience functions
+
+// ------------------------------
+// Functions
 
 // >> construction
 Result<shared_ptr<StringArray>>
