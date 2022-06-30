@@ -43,7 +43,7 @@ struct NamedScalarFn {
    * `RegisterScalarFnKernels()` below).
    */
   static Status
-  Call(KernelContext *ctx, const ExecSpan &input_arg, ExecResult *out) {
+  Exec(KernelContext *ctx, const ExecSpan &input_arg, ExecResult *out) {
     ARROW_LOG(INFO) << "Calling kernel 'NamedScalarFn'";
     if (input_arg.num_values() != 1 or not input_arg[0].is_array()) {
       return Status::Invalid("Unsupported argument types or shape");
@@ -135,7 +135,7 @@ RegisterScalarFnKernels() {
     fn_named_scalar->AddKernel(
        { InputType(arrow::int32()) }
       ,OutputType(arrow::uint32())
-      ,NamedScalarFn::Call
+      ,NamedScalarFn::Exec
     )
   );
 
