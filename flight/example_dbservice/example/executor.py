@@ -30,6 +30,7 @@ A module of example approaches for executing a query.
 
 # >> Standard libs
 import logging
+import hashlib
 
 from pathlib import Path
 
@@ -55,6 +56,15 @@ AddConsoleLogHandler(logger)
 # ------------------------------
 # Functions
 
+def HashSubstrait(plan_msg: bytes) -> str:
+    return hashlib.md5(plan_msg, usedforsecurity=False).hexdigest()
+
+def EncodeHash(hash_digest: str) -> bytes:
+    return hash_digest.encode('utf-8')
+
+def DecodeHash(encoded_hash: bytes) -> str:
+    return encoded_hash.decode(encoding='utf-8')
+
 def ExecuteSubstrait(data_provider, plan_msg: bytes) -> pyarrow.Table:
     """ Convenience function that executes substrait using Acero. """
 
@@ -63,3 +73,4 @@ def ExecuteSubstrait(data_provider, plan_msg: bytes) -> pyarrow.Table:
 
     logger.debug('Query plan executed')
     return result_reader.read_all()
+

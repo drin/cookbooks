@@ -152,3 +152,21 @@ def PrepareDatabase():
     InitializeSampleTableFromSlices(duck_dbms, slice_tnames)
 
     return duck_dbms
+
+
+# >> Convenience functions for interacting with substrait
+
+def ReadSampleQueryPlan():
+    # define hard-coded variables and validate the file path
+    plan_dirpath = Path('resources') / 'examples'
+    plan_fpath   = plan_dirpath / 'average-expression.substrait'
+
+    if not plan_fpath.is_file():
+        sys.exit(f'Invalid file path for query plan: [{plan_fpath}]')
+
+    # read the serialized substrait plan from a binary file
+    with open(plan_fpath, 'rb') as proto_handle:
+        plan_msg = proto_handle.read()
+
+    # return the serialized substrait plan
+    return plan_msg

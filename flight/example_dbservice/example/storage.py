@@ -36,6 +36,7 @@ illustrate a few of the integration points.
 
 # >> Standard libs
 import sys
+import hashlib
 
 from pathlib import Path
 from typing  import Any
@@ -248,11 +249,11 @@ class DuckDBMS:
         self.__dbconn.execute(query_str)
         return self.__dbconn.fetchall()
 
-    def ExecuteSubstrait(self, substrait_plan: bytes):
+    def ExecuteSubstrait(self, plan_msg: bytes):
         """
         Convenience method to execute a serialized substrait plan against the db.
         """
 
-        result = self.__dbconn.from_substrait(proto=substrait_plan)
+        result = self.__dbconn.from_substrait(proto=plan_msg)
         return result.fetchall()
 
