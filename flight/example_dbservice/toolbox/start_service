@@ -1,0 +1,139 @@
+#!/usr/bin/env python
+
+# ------------------------------
+# License
+
+# Copyright 2023 Aldrin Montana
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# ------------------------------
+# Module Docstring
+"""
+A script that will start a flight service that interfaces with DuckDB
+"""
+
+
+# ------------------------------
+# Dependencies
+
+# >> Standard
+import sys
+import logging
+
+# >> Third-party
+import pyarrow
+
+#   |> Arrow Flight
+from pyarrow import flight
+
+# >> Internal
+from example.clients  import SampleClient
+from example.services import DatabaseService
+from example.recipes  import ReadSampleQueryPlan
+
+#   |> Logging
+from example import AddConsoleLogHandler
+from example import default_loglevel
+
+
+# ------------------------------
+# Module variables
+
+# >> Logging
+logger = logging.getLogger(__name__)
+logger.setLevel(default_loglevel)
+AddConsoleLogHandler(logger)
+
+GRPC_PORT = 9999
+
+
+# ------------------------------
+# Functions
+
+
+# ------------------------------
+# Classes
+
+class ServiceContext:
+    def __init__(self, host='localhost', port=GRPC_PORT, **kwargs):
+        super().__init__(**kwargs)
+
+        self.host    = host
+        self.port    = port
+
+    def listen_uri(self):
+        if self.host == 'localhost':
+            return f'grpc://0.0.0.0:{self.port}'
+
+        return f'grpc://{self.host}:{self.port}'
+
+    def connect_uri(self):
+        return f'grpc://{self.host}:{self.port}'
+
+
+def StartSampleDBService():
+    # initialize a default ServiceContext
+    default_context = ServiceContext()
+
+    # initialize a database service and tell it where to listen
+    sample_service = DatabaseService.ForSampleData(default_context.listen_uri())
+
+    return default_context, sample_service
+
+
+def StartSampleClient():
+    # initialize a default ServiceContext
+    default_context = ServiceContext()
+
+    # initialize a client and connect it to the default service
+    sample_client = SampleClient.ConnectTo(default_context.connect_uri())
+
+    return default_context, sample_client
+
+
+def StartAsClientOrServer(process_type: str):
+    # Client reads a substrait plan from a file and sends it to a service
+    if process_type == 'client':
+        plan_msg        = ReadSampleQueryPlan()
+        srv_ctx, client = StartSampleClient()
+
+        logger.info(f'Starting database client...')
+        logger.info(f'Connecting to URI: [{srv_ctx.connect_uri()}]')
+
+        client.SendQueryPlan(plan_msg)
+
+    # Service starts and just listens for requests
+    elif process_type == 'database':
+        srv_ctx, service = StartSampleDBService()
+
+        logger.info(f'Starting database service...')
+        logger.info(f'Connection URI: [{srv_ctx.connect_uri()}]')
+
+        service.serve()
+
+    # Nothing else is implemented for this recipe
+    else:
+        sys.exit('Unable to start process type: "{process_type}"')
+
+
+# ------------------------------
+# Main logic
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        sys.exit('Usage: start_service <"database" | "client">')
+
+    StartAsClientOrServer(sys.argv[1])
+
