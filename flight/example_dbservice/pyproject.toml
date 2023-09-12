@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "example"
+version = "0.1.0"
+description = ""
+authors = ["Aldrin Montana <octalene.dev@pm.me>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pyarrow = "^13.0.0"
+substrait = "^0.4.0"
+duckdb = "^0.8.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
