@@ -30,7 +30,6 @@ Interface and implementations of client-side communications with a FlightServer.
 
 # >> Standard
 import logging
-import pdb
 
 # >> Third-party
 #   |> Arrow Flight
@@ -92,7 +91,6 @@ class SampleClient:
             log_msg = service_response.body
 
             try:
-                pdb.set_trace()
                 service_response = next(service_ctrl_conn)
                 logger.debug(log_msg.to_pybytes().decode('utf-8'))
 

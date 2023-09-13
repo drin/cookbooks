@@ -112,7 +112,10 @@ class DatabaseService(FlightServerBase):
 
     @classmethod
     def ForSampleData(cls, service_location):
-        return cls(service_location, db_conn=recipes.PrepareDatabase())
+        duck_dbconn = recipes.PrepareDatabase()
+        duck_dbconn.LoadExtensionSubstrait()
+
+        return cls(service_location, db_conn=duck_dbconn)
 
     def __init__(self, service_location, db_conn,  **kwargs):
         super().__init__(service_location, **kwargs)
@@ -202,7 +205,7 @@ class DatabaseService(FlightServerBase):
         yield Result(log_msg.encode('utf-8'))
 
         query_id      = HashSubstrait(plan_msg)
-        query_results = ExecuteSubstrait(plan_msg)
+        query_results = self.__db_conn.ExecuteSubstrait(plan_msg)
         log_msg       = f'Executed query plan ({query_id})'
         logger.debug(log_msg)
         yield Result(log_msg.encode('utf-8'))
