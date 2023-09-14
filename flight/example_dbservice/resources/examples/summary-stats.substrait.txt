@@ -1,0 +1,154 @@
+version {
+  minor_number: 32
+  producer: "ibis-substrait"
+}
+extension_uris {
+  extension_uri_anchor: 1
+  uri: "https://github.com/substrait-io/substrait/blob/main/extensions/functions_aggregate_generic.yaml"
+}
+extension_uris {
+  extension_uri_anchor: 2
+  uri: "https://github.com/substrait-io/substrait/blob/main/extensions/functions_arithmetic.yaml"
+}
+extensions {
+  extension_function {
+    extension_uri_reference: 1
+    function_anchor: 1
+    name: "count:any"
+  }
+}
+extensions {
+  extension_function {
+    extension_uri_reference: 2
+    function_anchor: 2
+    name: "avg:fp64"
+  }
+}
+extensions {
+  extension_function {
+    extension_uri_reference: 2
+    function_anchor: 3
+    name: "variance:fp64"
+  }
+}
+relations {
+  root {
+    input {
+      aggregate {
+        input {
+          read {
+            common {
+              direct {
+              }
+            }
+            base_schema {
+              names: "gene_id"
+              names: "cell_id"
+              names: "expr"
+              struct {
+                types {
+                  string {
+                    nullability: NULLABILITY_NULLABLE
+                  }
+                }
+                types {
+                  string {
+                    nullability: NULLABILITY_NULLABLE
+                  }
+                }
+                types {
+                  fp64 {
+                    nullability: NULLABILITY_NULLABLE
+                  }
+                }
+                nullability: NULLABILITY_REQUIRED
+              }
+            }
+            named_table {
+              names: "sampledata"
+            }
+          }
+        }
+        groupings {
+          grouping_expressions {
+            selection {
+              direct_reference {
+                struct_field {
+                }
+              }
+              root_reference {
+              }
+            }
+          }
+        }
+        measures {
+          measure {
+            function_reference: 1
+            output_type {
+              i64 {
+                nullability: NULLABILITY_NULLABLE
+              }
+            }
+            phase: AGGREGATION_PHASE_INITIAL_TO_RESULT
+          }
+        }
+        measures {
+          measure {
+            function_reference: 2
+            arguments {
+              value {
+                selection {
+                  direct_reference {
+                    struct_field {
+                      field: 2
+                    }
+                  }
+                  root_reference {
+                  }
+                }
+              }
+            }
+            output_type {
+              fp64 {
+                nullability: NULLABILITY_NULLABLE
+              }
+            }
+            phase: AGGREGATION_PHASE_INITIAL_TO_RESULT
+          }
+        }
+        measures {
+          measure {
+            function_reference: 3
+            arguments {
+              value {
+                selection {
+                  direct_reference {
+                    struct_field {
+                      field: 2
+                    }
+                  }
+                  root_reference {
+                  }
+                }
+              }
+            }
+            options {
+              name: "distribution"
+              preference: "POPULATION"
+            }
+            output_type {
+              fp64 {
+                nullability: NULLABILITY_NULLABLE
+              }
+            }
+            phase: AGGREGATION_PHASE_INITIAL_TO_RESULT
+          }
+        }
+      }
+    }
+    names: "gene_id"
+    names: "cell_count"
+    names: "expr_avg"
+    names: "expr_var"
+  }
+}
