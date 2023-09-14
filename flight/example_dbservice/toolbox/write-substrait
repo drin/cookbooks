@@ -1,0 +1,154 @@
+#!/usr/bin/env python
+
+# ------------------------------
+# License
+
+# Copyright 2023 Aldrin Montana
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# ------------------------------
+# Dependencies
+
+# >> Standard modules
+import pdb
+import sys
+import logging
+
+from pathlib import Path
+
+# >> Third-party
+import ibis
+
+from ibis_substrait.compiler.core import SubstraitCompiler
+
+# >> Internal
+#   |> functions
+from example          import AddConsoleLogHandler
+from example.recipes  import PrepareDatabase
+
+#   |> variables
+from example import default_loglevel
+
+
+# ------------------------------
+# Module variables
+
+# >> Logging
+logger = logging.getLogger(__name__)
+logger.setLevel(default_loglevel)
+AddConsoleLogHandler(logger)
+
+
+# ------------------------------
+# Classes and Functions
+
+# >> Functions for interacting with the database
+def ConnectToDuckDB():
+    # use recipe for preparing the database
+    duck_dbms = PrepareDatabase()
+
+    # install and load substrait extension for later
+    duck_dbms.LoadExtensionSubstrait()
+
+    return duck_dbms
+
+
+# >> Functions for defining a query
+
+#    |> Using Ibis
+def GetTableSchema(table_name='sampledata'):
+    """ Define a schema for ibis to build a query expression. """
+
+    return ibis.table(
+         # schema
+         [
+              ('gene_id', 'string')
+             ,('cell_id', 'string')
+             ,('expr'   , 'float' )
+         ]
+         # table name
+        ,name=table_name
+    )
+
+def QuerySummaryStats(ibis_table):
+    """
+    A function that uses ibis to define the equivalent of:
+        SELECT    COUNT(*)  AS cell_count
+                 ,AVG(expr) AS expr_avg
+                 ,VAR(expr) AS expr_var    -- variance
+          FROM   :ibis_table:
+        GROUP BY gene_id
+
+    Note that :ibis_table: is a table object (in this case, created or retrieved using
+    DuckDB) and column names are assumed to exist for that table.
+    """
+
+    return (
+        ibis_table.group_by(ibis_table.gene_id)
+                  .aggregate(
+                        cell_count=ibis_table.count()
+                       ,expr_avg=ibis_table.expr.mean()
+                       ,expr_var=ibis_table.expr.var(how='pop')
+                   )
+    )
+
+
+def IbisToSubstrait(ibis_query):
+    """
+    A function that takes an ibis expression, :ibis_query:, and uses ibis_substrait to
+    compile it to a substrait query plan. We unbind the table first so that we can
+    validate the schema at a substrait consumer instead of now, at substrait compilation
+    time.
+    """
+
+    substrait_compiler = SubstraitCompiler()
+    proto_msg          = substrait_compiler.compile(ibis_query.unbind())
+
+    return proto_msg
+
+
+# >> Convenience functions
+def WriteSubstraitToFileBinary(substrait_query, plan_fpath):
+    if not plan_fpath.is_file():
+        with open(plan_fpath, 'wb') as file_handle:
+            file_handle.write(substrait_query.SerializeToString())
+
+
+def WriteSubstraitToFileText(substrait_query, plan_fpath):
+    if not plan_fpath.is_file():
+        with open(plan_fpath, 'w') as file_handle:
+            file_handle.write(str(substrait_query))
+
+
+# ------------------------------
+# Main logic
+
+if __name__ == '__main__':
+    sample_tname = 'sampledata'
+
+    db_conn      = ConnectToDuckDB()
+    logger.info('Sample data:')
+    logger.info(db_conn.GetTable(sample_tname).show())
+
+    sample_schema    = GetTableSchema(table_name=sample_tname)
+    sample_queryexpr = QuerySummaryStats(sample_schema)
+    sample_substrait = IbisToSubstrait(sample_queryexpr)
+    # logger.info('Sample query results:')
+    # logger.info(sample_queryexpr.to_pyarrow().to_pandas())
+
+    binary_fpath = Path('resources') / 'examples' / 'summary-stats.substrait'
+    text_fpath   = Path('resources') / 'examples' / 'summary-stats.substrait.txt'
+    WriteSubstraitToFileBinary(sample_substrait, binary_fpath)
+    WriteSubstraitToFileText(sample_substrait  ,   text_fpath)

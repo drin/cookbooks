@@ -120,7 +120,7 @@ if __name__ == '__main__':
         sys.exit('Usage: execute-substrait.py <path-to-substrait-plan> <query-engine-name>')
 
     # populate the protobuf structure from binary
-    default_plan_fpath = Path('resources') / 'examples' / 'average-expression.substrait'
+    default_plan_fpath = Path('resources') / 'examples' / 'summary-stats.substrait'
     plan_message_fpath = Path(sys.argv[1]) or default_plan_fpath
 
     with open(plan_message_fpath, 'rb') as file_handle:

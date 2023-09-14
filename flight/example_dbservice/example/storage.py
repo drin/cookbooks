@@ -204,6 +204,9 @@ class DuckDBMS:
 
         return name in self.ShowTables(use_cache)
 
+    def GetTable(self, name: str) -> duckdb.DuckDBPyRelation:
+        return self.__dbconn.table(name)
+
     def CreateTable(self, name: str, arrow_table: Table, replace: False):
         """
         Convenience method for creating a database table. If this db instance was
