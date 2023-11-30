@@ -11,7 +11,7 @@ project(
 # ------------------------------
 # Dependencies
 
-dep_arrow = dependency('arrow-dataset', version: '>=7.0.0', static: false)
+dep_arrow = dependency('arrow-dataset', version: '>=12.0.1', static: false)
 
 
 # ------------------------------
