@@ -28,7 +28,11 @@
 Result<shared_ptr<Array>>
 MakeTestDataForListArray() {
   auto   type_flatlist = arrow::list(arrow::int64());
-  string data_listvals = R"([[1, 2, 3, 4], [2, 4, 9, 16], [2, 4, 6, 8]])";
+  string data_listvals = R"([
+                                 [1, 1, 2, 3,  4]
+                                ,[2, 2, 4, 6,  8]
+                                ,[3, 3, 6, 9, 12]
+                            ])";
 
   return ArrayFromJSON(type_flatlist, data_listvals);
 }
@@ -38,9 +42,9 @@ Result<shared_ptr<Array>>
 MakeTestDataForNestedListArray() {
   auto   type_nestedlist = arrow::list(arrow::list(arrow::int64()));
   string data_listvals   = R"([
-                                   [[1, 2], [3,  4]]
-                                  ,[[2, 4], [9, 16]]
-                                  ,[[2, 4], [6,  8]]
+                                   [[1], [1, 2, 3,  4]]
+                                  ,[[2], [2, 4, 6,  8]]
+                                  ,[[3], [3, 6, 9, 12]]
                               ])";
 
   return ArrayFromJSON(type_nestedlist, data_listvals);
