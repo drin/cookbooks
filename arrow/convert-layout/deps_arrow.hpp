@@ -31,4 +31,7 @@
 using arrow::Status;
 using arrow::Result;
 
+using arrow::Buffer;
 using arrow::Array;
+using arrow::ArrayData;
+
